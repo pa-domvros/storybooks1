@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Emperor's New City</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-beige: #F5F5DC;
+            --card-beige: #FAF9F6;
+            --text-dark-brown: #5C4033;
+            --cinnamon: #A0522D;
+            --gold-border: #DAA520;
+            --card-height: 400px; 
+            --correct-green: #2e7d32;
+            --incorrect-red: #c62828;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark-brown);
+            margin: 0;
+            padding: 5px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px; 
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 2.5rem;
+            color: var(--cinnamon);
+            margin: 0;
+            padding-top: 10px;
+        }
+
+        .audio-player-container {
+            text-align: center;
+            margin: 0;
+        }
+
+        .audio-player-container p {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        /* === STORY STYLES === */
+        .card-stack {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            height: calc(var(--card-height) + 100px); 
+        }
+
+        .story-card {
+            display: flex;
+            flex-direction: row; 
+            box-sizing: border-box;
+            position: absolute;
+            width: 100%;
+            height: var(--card-height);
+            background-color: var(--card-beige);
+            border: 1px solid var(--gold-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; 
+        }
+        
+        .story-card.gone {
+            transform: translateX(-120%) rotate(-15deg) !important;
+            opacity: 0;
+        }
+
+        .card-image-container {
+            width: 50%;
+            height: 100%;
+            padding: 15px;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-text {
+            width: 50%;
+            height: 100%;
+            padding: 25px;
+            overflow-y: auto;
+            text-align: justify;
+        }
+
+        .card-text h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 1.8rem;
+        }
+        
+        .card-text p {
+            font-size: 1.2rem; 
+            margin: 0;
+            line-height: 1.7;
+        }
+        
+        /* === PRACTICE STYLES === */
+        #practice-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        .question-block {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .question-block p { margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.6; }
+        .options { display: flex; flex-wrap: wrap; gap: 10px; }
+        
+        .option {
+            background-color: white; border: 1px solid #ddd; padding: 10px 15px;
+            font-family: 'Georgia', serif; font-size: 1rem; border-radius: 8px;
+            cursor: pointer; transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            text-align: left;
+        }
+        .option:hover { border-color: var(--cinnamon); }
+        .option.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green); }
+        .option.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+        .option.disabled { cursor: not-allowed; opacity: 0.9; }
+        .option.disabled:hover { border-color: #ddd; }
+
+        /* Vocabulary matching styles */
+        .vocabulary-pairs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .vocabulary-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .vocabulary-item:hover {
+            border-color: var(--cinnamon);
+        }
+        
+        .vocabulary-item.selected {
+            background-color: var(--cinnamon);
+            color: white;
+            border-color: var(--cinnamon);
+        }
+        
+        .vocabulary-item.matched {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: var(--correct-green);
+            cursor: default;
+        }
+        
+        .vocabulary-item.incorrect {
+            background-color: var(--incorrect-red);
+            color: white;
+            border-color: var(--incorrect-red);
+        }
+
+        /* === FOOTER AND VIEW SWITCHING STYLES === */
+        footer {
+            text-align: center;
+            width: 100%;
+            margin: 8px 0 15px 0; 
+            padding: 0;
+        }
+        
+        .footer-buttons {
+            transition: transform 0.5s ease-in-out;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-buttons.moved-to-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: auto; 
+            margin: 0;
+        }
+
+        .footer-buttons button, 
+        .pagination-buttons button,
+        #practice-complete-buttons button {
+            background-color: var(--cinnamon); 
+            color: white; 
+            border: none;
+            padding: 12px 25px; 
+            font-family: 'Georgia', serif; 
+            font-size: 1rem;
+            font-weight: 600; 
+            border-radius: 30px; 
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            opacity: 1;
+            transition: opacity 0.5s, transform 0.3s; 
+            margin: 0 10px;
+        }
+        
+        .footer-buttons button:hover, 
+        .pagination-buttons button:hover,
+        #practice-complete-buttons button:hover { 
+            transform: translateY(-2px); 
+        }
+        .footer-buttons button.hidden { 
+            opacity: 0; 
+            pointer-events: none; 
+            transform: translateY(10px); 
+        }
+
+        .footer-text {
+            margin-top: 10px; 
+            font-size: 0.9rem;
+            color: var(--text-dark-brown); 
+            opacity: 0.8;
+        }
+        
+        /* Class to hide/show main views */
+        .hidden-view {
+            display: none;
+        }
+        
+        /* === FURTHER READING STYLES === */
+        #further-reading-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        #further-reading-view .further-reading-text {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: justify;
+        }
+        
+        #further-reading-view p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        #further-reading-view p strong {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+        }
+
+        /* Pagination buttons for practice view */
+        .pagination-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Practice complete buttons */
+        #practice-complete-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Hide exercise containers by default */
+        .exercise-container {
+            display: none;
+        }
+
+        /* Show first exercise container by default */
+        .exercise-container:first-child {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The Emperor's New City</h1>
+    </header>
+
+    <div class="audio-player-container">
+        <p>Listen to the story</p>
+        <audio controls src="emperor.mp3">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <main class="main-container">
+        <div id="story-view">
+            <footer>
+                <div class="footer-buttons">
+                    <button id="reset-btn" class="hidden">Read Again</button>
+                    <button id="practice-btn" class="hidden">Practice</button>
+                    <button id="further-reading-btn" class="hidden">Further Reading</button>
+                </div>
+                <div class="footer-text">
+                    ✨✍️ Written by Panagiotis Domvros, English and Drama Teacher ✍️✨
+                </div>
+            </footer>
+
+            <ol class="card-stack">
+                <li class="story-card">
+                    <div class="card-image-container"><img src="0.jpg" alt="The Emperor's New City Title" class="card-image"></div>
+                    <div class="card-text"><h2>The Emperor's New City</h2><p>written by Panagiotis Domvros</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="1.jpg" alt="Emperor Constantine on a balcony" class="card-image"></div>
+                    <div class="card-text"><p>Emperor Constantine stood on a balcony in Rome. The city was magnificent, filled with history and marble, but it felt old. Its streets were a crowded maze, and its heart seemed to beat just a little slower than it used to.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="2.jpg" alt="Constantine with his architect" class="card-image"></div>
+                    <div class="card-text"><p>"The Roman Empire is vast," he thought to himself. "It needs a new heart, a new, vibrant beginning." The next day, Constantine summoned his wisest architect. He unrolled a large map across a polished table. "The Empire needs a capital that looks to the future," the Emperor said, his finger tracing the line where land met sea.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="3.jpg" alt="Map of Byzantium" class="card-image"></div>
+                    <div class="card-text"><p>Constantine chose the perfect spot: the ancient Greek city of Byzantium. It sat on a strategic peninsula with the sea on two sides, making it easy to defend and perfect for ships arriving from all corners of the world. He announced his grand plan to the people of Rome.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="4.jpg" alt="Livia and her father in Rome" class="card-image"></div>
+                    <div class="card-text"><p>In a bustling Roman market, a young woman named Livia heard the news. "A new capital?" she whispered to her father, a potter. "Leave Rome?" The idea was as big and daunting as the Colosseum itself. But it was also a spark of something new and exciting.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="5.jpg" alt="Constantine on a hill in Byzantium" class="card-image"></div>
+                    <div class="card-text"><p>Emperor Constantine sailed across the sea to Byzantium. When he arrived, he stood on a green hill overlooking the sparkling blue water. "Yes," he said to his architect, who stood beside him. "This is the place. Here we will build our new Rome, a city of light."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="6.jpg" alt="Workers building the new city" class="card-image"></div>
+                    <div class="card-text"><p>Soon, the quiet hills were buzzing with activity. Thousands of workers arrived. They dug deep foundations, laid enormous stones, and raised mighty walls that touched the sky. The new city began to rise from the earth, brick by clay brick.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="7.jpg" alt="Architect with plans for grand churches" class="card-image"></div>
+                    <div class="card-text"><p>The architect showed the Emperor the plans for grand churches with soaring domes, wide avenues for parades, and a magnificent palace overlooking the sea. "It will be a beacon for the whole Empire," the architect explained, his eyes shining with pride.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="8.jpg" alt="Livia and her family packing" class="card-image"></div>
+                    <div class="card-text"><p>Back in Rome, Livia and her family packed their belongings onto a sturdy wooden cart. They were leaving the only home they had ever known, but their hearts were filled with hope for the future in the Emperor's new city.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="9.jpg" alt="Constantinople from a boat" class="card-image"></div>
+                    <div class="card-text"><p>At last, the city was ready. It was named Constantinople, the City of Constantine. It was more glorious than anyone had dreamed. Arriving by boat, Livia and her father stared in wonder at the tall, gleaming columns and the great dome of a new church glittering in the sun.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="10.jpg" alt="Emperor Constantine in the Hippodrome" class="card-image"></div>
+                    <div class="card-text"><p>Emperor Constantine stood before the people in the grand new Hippodrome. "This is our new capital!" he declared, his voice echoing through the massive arena. "A new center for our Empire, a bridge between two worlds, a city for the ages!" And a new chapter for Rome had begun.</p></div>
+                </li>
+            </ol>
+        </div>
+
+        <div id="practice-view" class="hidden-view">
+            <section class="exercise-container">
+                <h2>Practice</h2>
+                <div class="question-block"><p>1. Who first wanted to build the "Great Church" on the site of Hagia Sophia?</p><div class="options"><button class="option" data-correct="true">Emperor Constantine</button><button class="option">Emperor Justinian</button><button class="option">Sultan Mehmed II</button></div></div>
+                <div class="question-block"><p>2. Who rebuilt Hagia Sophia with its massive, "floating" dome after it was destroyed?</p><div class="options"><button class="option">Alexios</button><button class="option" data-correct="true">Emperor Justinian</button><button class="option">Sultan Mehmed II</button></div></div>
+                <div class="question-block"><p>3. What did Sultan Mehmed II do after conquering the city?</p><div class="options"><button class="option">Turned it into a museum</button><button class="option">Tore it down</button><button class="option" data-correct="true">Converted it into a mosque</button></div></div>
+                <div class="question-block"><p>4. What are the tall, slender towers added to the building called?</p><div class="options"><button class="option">Bell Towers</button><button class="option" data-correct="true">Minarets</button><button class="option">Spires</button></div></div>
+                <div class="question-block"><p>5. In the 20th century, the leaders of the new country of Turkey turned Hagia Sophia into a...</p><div class="options"><button class="option">Palace</button><button class="option">Library</button><button class="option" data-correct="true">Museum</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>True or False</h2>
+                <div class="question-block"><p>1. The original church was destroyed by an earthquake.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>2. For nearly 1,000 years, Hagia Sophia was the world's largest cathedral.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>3. When it was converted to a mosque, all Christian mosaics were destroyed.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>4. The story is being told by a grandfather named Alexios to his grandson Marios.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>5. The most recent change to the building was turning it back into a museum.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>Vocabulary Matching</h2>
+                <div class="question-block">
+                    <p>Match each word with its correct definition:</p>
+                    <div class="vocabulary-pairs">
+                        <div class="vocabulary-item" data-match="1">Byzantium</div>
+                        <div class="vocabulary-item" data-match="1">Ancient Greek city that became Constantinople</div>
+                        <div class="vocabulary-item" data-match="2">Hippodrome</div>
+                        <div class="vocabulary-item" data-match="2">Arena for chariot races and public events</div>
+                        <div class="vocabulary-item" data-match="3">Peninsula</div>
+                        <div class="vocabulary-item" data-match="3">Land surrounded by water on three sides</div>
+                        <div class="vocabulary-item" data-match="4">Beacon</div>
+                        <div class="vocabulary-item" data-match="4">A guiding or signaling light</div>
+                    </div>
+                </div>
+            </section>
+            <div class="pagination-buttons">
+                <button id="practice-prev-btn" class="hidden">Previous</button>
+                <button id="practice-next-btn">Next</button>
+            </div>
+            <div id="practice-complete-buttons" class="hidden">
+                <button id="practice-to-further-reading-btn">Next: Further Reading</button>
+            </div>
+        </div>
+
+        <div id="further-reading-view" class="hidden-view">
+            <h2>Further Reading</h2>
+            <div class="further-reading-text">
+                <p>
+                    Long before Justinian's masterpiece rose above the skyline, <strong>Emperor Constantine the Great</strong> set the stage for Hagia Sophia's story. In 330 CE, Constantine chose the ancient city of Byzantium as the new capital of the Roman Empire and renamed it <strong>Constantinople</strong>. To honor Christian faith and imperial power, he commissioned a grand church dedicated to "Holy Wisdom" (Hagia Sophia), laying its foundations soon after. Although that original basilica wasn't completed until 360 CE—under his nephew, Constantius II—Constantine's vision established the site's sacred importance.
+                </p>
+                <p>
+                    Over the next two centuries, two more churches rose and fell on the same spot: one rebuilt by Emperor Theodosius II around 415 CE after riots and another erected in 532 CE that was almost immediately destroyed during the Nika Revolt. Each reconstruction reused columns and marble from pagan temples across the empire, embedding layers of history into every stone.
+                </p>
+                <p>
+                    When <strong>Emperor Justinian I</strong> came to power, he resolved to create a church worthy of Constantinople's glory. Between 532 and 537 CE, architects Anthemius of Tralles and Isidore of Miletus assembled tens of thousands of workers to erect the soaring dome—31 meters across—supported by four revolutionary pendentives. The completed Hagia Sophia combined Constantine's foundational ambition with centuries of rebuilds, resulting in the vast, light-filled basilica that has stood as an architectural marvel for nearly fifteen hundred years.
+                </p>
+            </div>
+            <footer>
+                <div class="footer-buttons">
+                    <button id="further-reading-prev-btn">Previous</button>
+                    <button id="further-reading-next-btn">Next</button>
+                </div>
+            </footer>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === Main Views ===
+            const storyView = document.getElementById('story-view');
+            const practiceView = document.getElementById('practice-view');
+            const furtherReadingView = document.getElementById('further-reading-view');
+            const views = [storyView, practiceView, furtherReadingView];
+
+            // === Story Card Elements ===
+            const cards = document.querySelectorAll('.story-card');
+            const resetButton = document.getElementById('reset-btn');
+            const practiceButton = document.getElementById('practice-btn');
+            const furtherReadingButton = document.getElementById('further-reading-btn');
+            const footerButtons = document.querySelector('.footer-buttons'); 
+            const totalCards = cards.length;
+            let currentIndex = 0;
+            let currentViewIndex = 0;
+
+            // === Practice Elements ===
+            const allOptionsContainers = document.querySelectorAll('.options');
+            const practicePrevBtn = document.getElementById('practice-prev-btn');
+            const practiceNextBtn = document.getElementById('practice-next-btn');
+            const practiceToFurtherReadingBtn = document.getElementById('practice-to-further-reading-btn');
+            const practiceCompleteButtons = document.getElementById('practice-complete-buttons');
+            const exerciseContainers = document.querySelectorAll('.exercise-container');
+            const vocabularyItems = document.querySelectorAll('.vocabulary-item');
+
+            // === Further Reading Elements ===
+            const furtherReadingPrevBtn = document.getElementById('further-reading-prev-btn');
+            const furtherReadingNextBtn = document.getElementById('further-reading-next-btn');
+
+            // --- Story Card Logic ---
+            function setupCards() {
+                cards.forEach((card, index) => {
+                    card.style.zIndex = totalCards - index;
+                    card.style.transform = `translateY(${index * 8}px)`;
+                    
+                    const handleCardClick = () => {
+                        if (index === currentIndex) {
+                            card.classList.add('gone');
+                            currentIndex++;
+                            if (currentIndex === totalCards) {
+                                resetButton.classList.remove('hidden');
+                                practiceButton.classList.remove('hidden');
+                                furtherReadingButton.classList.remove('hidden');
+                                footerButtons.classList.add('moved-to-center');
+                            }
+                        }
+                    };
+                    
+                    if (card.clickListener) card.removeEventListener('click', card.clickListener);
+                    card.clickListener = handleCardClick;
+                    card.addEventListener('click', card.clickListener);
+                });
+            }
+            
+            function resetStack() {
+                currentIndex = 0;
+                cards.forEach(card => card.classList.remove('gone'));
+                resetButton.classList.add('hidden');
+                practiceButton.classList.add('hidden');
+                furtherReadingButton.classList.add('hidden');
+                footerButtons.classList.remove('moved-to-center');
+                setTimeout(setupCards, 500); 
+            }
+
+            // --- Practice Logic ---
+            allOptionsContainers.forEach(container => {
+                container.addEventListener('click', (event) => {
+                    const clickedButton = event.target.closest('.option');
+                    if (!clickedButton || clickedButton.classList.contains('disabled')) return;
+
+                    const isCorrect = clickedButton.dataset.correct === 'true';
+                    const parentQuestionBlock = clickedButton.closest('.question-block');
+                    const optionsInBlock = parentQuestionBlock.querySelectorAll('.option');
+
+                    optionsInBlock.forEach(btn => btn.classList.add('disabled'));
+
+                    if (isCorrect) {
+                        clickedButton.classList.add('correct');
+                    } else {
+                        clickedButton.classList.add('incorrect');
+                        const correctButton = parentQuestionBlock.querySelector('.option[data-correct="true"]');
+                        if (correctButton) correctButton.classList.add('correct');
+                    }
+                });
+            });
+
+            // --- Vocabulary Matching Logic ---
+            let selectedVocabularyItem = null;
+            let matchedPairs = 0;
+
+            vocabularyItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // Ignore if already matched
+                    if (item.classList.contains('matched')) return;
+
+                    // If nothing selected yet, select this item
+                    if (!selectedVocabularyItem) {
+                        selectedVocabularyItem = item;
+                        item.classList.add('selected');
+                        return;
+                    }
+
+                    // If clicking the same item, deselect it
+                    if (selectedVocabularyItem === item) {
+                        selectedVocabularyItem.classList.remove('selected');
+                        selectedVocabularyItem = null;
+                        return;
+                    }
+
+                    // Check if it's a match
+                    const isMatch = selectedVocabularyItem.dataset.match === item.dataset.match;
+
+                    if (isMatch) {
+                        selectedVocabularyItem.classList.remove('selected');
+                        selectedVocabularyItem.classList.add('matched');
+                        item.classList.add('matched');
+                        matchedPairs++;
+                        
+                        // Check if all pairs are matched
+                        if (matchedPairs === vocabularyItems.length / 2) {
+                            // All pairs matched
+                        }
+                    } else {
+                        selectedVocabularyItem.classList.remove('selected');
+                        selectedVocabularyItem.classList.add('incorrect');
+                        item.classList.add('incorrect');
+                        
+                        // Reset after a short delay
+                        setTimeout(() => {
+                            selectedVocabularyItem.classList.remove('incorrect');
+                            item.classList.remove('incorrect');
+                        }, 1000);
+                    }
+
+                    selectedVocabularyItem = null;
+                });
+            });
+
+            // --- Practice Pagination ---
+            let currentPracticePage = 0;
+
+            function showPracticePage(pageIndex) {
+                exerciseContainers.forEach((container, index) => {
+                    container.style.display = index === pageIndex ? 'block' : 'none';
+                });
+
+                // Update button visibility
+                practicePrevBtn.classList.toggle('hidden', pageIndex === 0);
+                practiceNextBtn.classList.toggle('hidden', pageIndex === exerciseContainers.length - 1);
+                practiceCompleteButtons.classList.toggle('hidden', pageIndex !== exerciseContainers.length - 1);
+
+                currentPracticePage = pageIndex;
+            }
+
+            practicePrevBtn.addEventListener('click', () => {
+                showPracticePage(currentPracticePage - 1);
+            });
+
+            practiceNextBtn.addEventListener('click', () => {
+                showPracticePage(currentPracticePage + 1);
+            });
+
+            // --- Navigation Logic ---
+            function showView(viewIndex) {
+                views.forEach((view, index) => {
+                    view.classList.toggle('hidden-view', index !== viewIndex);
+                });
+                currentViewIndex = viewIndex;
+                window.scrollTo(0, 0);
+
+                // Reset practice view to first page when showing it
+                if (viewIndex === 1) {
+                    showPracticePage(0);
+                    // Reset vocabulary matching
+                    vocabularyItems.forEach(item => {
+                        item.classList.remove('selected', 'matched', 'incorrect');
+                    });
+                    matchedPairs = 0;
+                    selectedVocabularyItem = null;
+                }
+            }
+
+            practiceButton.addEventListener('click', () => showView(1));
+            furtherReadingButton.addEventListener('click', () => showView(2));
+            resetButton.addEventListener('click', () => {
+                showView(0);
+                resetStack();
+            });
+
+            practicePrevBtn.addEventListener('click', () => showView(0));
+            practiceToFurtherReadingBtn.addEventListener('click', () => showView(2));
+
+            furtherReadingPrevBtn.addEventListener('click', () => showView(1));
+            furtherReadingNextBtn.addEventListener('click', () => showView(0));
+
+            // --- Initial Setup ---
+            setupCards();
+            showPracticePage(0); // Initialize practice view
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ariadne and the Whispers of Atlantis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-beige: #F5F5DC;
+            --card-beige: #FAF9F6;
+            --text-dark-brown: #5C4033;
+            --cinnamon: #A0522D;
+            --gold-border: #DAA520;
+            --card-height: 400px;
+            --correct-green: #2e7d32;
+            --incorrect-red: #c62828;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark-brown);
+            margin: 0;
+            padding: 5px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 2.5rem;
+            color: var(--cinnamon);
+            margin: 0;
+            padding-top: 10px;
+        }
+
+        .audio-player-container {
+            text-align: center;
+            margin: 0 0 20px;
+        }
+
+        .audio-player-container p {
+            margin: 0 0 5px;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .card-stack {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            height: calc(var(--card-height) + 100px);
+        }
+
+        .story-card {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            width: 100%;
+            height: var(--card-height);
+            background-color: var(--card-beige);
+            border: 1px solid var(--gold-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .story-card.gone {
+            transform: translateX(-120%) rotate(-15deg) !important;
+            opacity: 0;
+        }
+
+        .card-image-container {
+            width: 50%;
+            padding: 15px;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-text {
+            width: 50%;
+            padding: 25px;
+            overflow-y: auto;
+            text-align: justify;
+        }
+
+        .card-text h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .card-text p {
+            font-size: 1.2rem;
+            margin: 0;
+            line-height: 1.7;
+        }
+        
+        #practice-view h2,
+        #further-reading-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        .question-block {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .question-block p {
+            margin: 0 0 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            text-align: left;
+        }
+        
+        .option:hover { border-color: var(--cinnamon); }
+        .option.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green); }
+        .option.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+        .option.disabled { cursor: not-allowed; opacity: 0.9; }
+
+        .vocabulary-pairs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .vocabulary-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .vocabulary-item:hover { border-color: var(--cinnamon); }
+        .vocabulary-item.selected { background-color: var(--cinnamon); color: white; border-color: var(--cinnamon); }
+        .vocabulary-item.matched { background-color: var(--correct-green); color: white; border-color: var(--correct-green); cursor: default; }
+        .vocabulary-item.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+
+        footer {
+            text-align: center;
+            width: 100%;
+            margin: 8px 0 15px;
+            position: relative;
+        }
+        
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .footer-buttons.moved-to-center {
+            position: absolute;
+            top: calc(var(--card-height) + 40px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .footer-buttons button,
+        .pagination-buttons button,
+        #practice-complete-buttons button {
+            background-color: var(--cinnamon);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 0 10px;
+            transition: opacity 0.5s, transform 0.3s;
+        }
+        
+        .footer-buttons button.hidden,
+        .pagination-buttons button.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+        }
+
+        .footer-text {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dark-brown);
+            opacity: 0.8;
+        }
+
+        .hidden-view { display: none; }
+        .pagination-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+        #practice-complete-buttons { text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header><h1>Ariadne and the Whispers of Atlantis</h1></header>
+    <div class="audio-player-container">
+        <p>Listen to the story</p>
+        <audio controls src="Atlantis.mp3">Your browser does not support the audio element.</audio>
+    </div>
+    <main class="main-container">
+        <div id="story-view">
+            <footer>
+                <div class="footer-buttons">
+                    <button id="reset-btn" class="hidden">Read Again</button>
+                    <button id="practice-btn" class="hidden">Practice</button>
+                    <button id="further-reading-btn" class="hidden">Further Reading</button>
+                </div>
+                <div class="footer-text">✨✍️ Written by Panagiotis Domvros, English and Drama Teacher ✍️✨</div>
+            </footer>
+            <ol class="card-stack">
+                <li class="story-card">
+                    <div class="card-image-container"><img src="0.jpg" alt="Ariadne and the Whispers of Atlantis Title" class="card-image"></div>
+                    <div class="card-text"><h2>Ariadne and the Whispers of Atlantis</h2><p>written by Panagiotis Domvros</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="1.jpg" alt="A whisper of a lost city" class="card-image"></div>
+                    <div class="card-text"><p>Long ago, a whisper travelled on the wind, a tale of a city lost beneath the waves. It was Atlantis, a place of unimaginable beauty and wisdom, a legend that captured the heart of a young explorer named Ariadne.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="2.jpg" alt="Plato describing Atlantis" class="card-image"></div>
+                    <div class="card-text"><p>Plato described Atlantis as a land of wealth and harmony with the sea, its people wise and its temples grand.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="3.jpg" alt="Map beyond the Pillars of Hercules" class="card-image"></div>
+                    <div class="card-text"><p>Some believed it lay beyond the Pillars of Hercules by Gibraltar, hidden beneath deep, dark currents.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="4.jpg" alt="Beneath Mediterranean waters" class="card-image"></div>
+                    <div class="card-text"><p>Others thought it rested under the Mediterranean’s warm, blue waters, guarded by sea creatures and tides.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="5.jpg" alt="Ancient city of Akrotiri" class="card-image"></div>
+                    <div class="card-text"><p>On Thera (Santorini), Akrotiri was buried by a volcanic eruption around 1500 BCE, echoing Atlantis’s cataclysm.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="6.jpg" alt="Atlantis swallowed by the sea" class="card-image"></div>
+                    <div class="card-text"><p>Legends say Atlantis sank in one day and night, its advanced civilization lost to the sea.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="7.jpg" alt="Dreamers seeking truths" class="card-image"></div>
+                    <div class="card-text"><p>Even without proof, explorers and dreamers like Ariadne search for its secrets.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="8.jpg" alt="Ariadne on her quest" class="card-image"></div>
+                    <div class="card-text"><p>For Ariadne, the thrill lay in the journey, learning and imagining lost worlds.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="9.jpg" alt="Myth or reality of Atlantis" class="card-image"></div>
+                    <div class="card-text"><p>Myth or reality, Atlantis reminds us of imagination’s power and nature’s might.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="10.jpg" alt="The journey as treasure" class="card-image"></div>
+                    <div class="card-text"><p>In the end, the greatest treasure was the incredible journey of seeking and dreaming.</p></div>
+                </li>
+            </ol>
+        </div>
+        <!-- Practice view -->
+        <div id="practice-view" class="hidden-view">
+            <section class="exercise-container">
+                <h2>Practice</h2>
+                <div class="question-block"><p>1. Which philosopher wrote about Atlantis?</p><div class="options"><button class="option" data-correct="true">Plato</button><button class="option">Socrates</button><button class="option">Aristotle</button></div></div>
+                <div class="question-block"><p>2. Around what time did the Thera eruption occur?</p><div class="options"><button class="option">1000 BCE</button><button class="option" data-correct="true">1500 BCE</button><button class="option">500 BCE</button></div></div>
+                <div class="question-block"><p>3. Which island’s city is linked to Atlantis myths?</p><div class="options"><button class="option" data-correct="true">Santorini (Thera)</button><button class="option">Crete</button><button class="option">Rhodes</button></div></div>
+                <div class="question-block"><p>4. What theme does the Atlantis story warn about?</p><div class="options"><button class="option" data-correct="true">Hubris</button><button class="option">Greed</button><button class="option">War</button></div></div>
+                <div class="question-block"><p>5. Where did Plato place Atlantis?</p><div class="options"><button class="option">Indian Ocean</button><button class="option" data-correct="true">Beyond the Pillars of Hercules</button><button class="option">Black Sea</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>True or False</h2>
+                <div class="question-block"><p>1. Akrotiri was buried by a volcanic eruption.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>2. Plato wrote about Atlantis in the "Republic."</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>3. Some continue underwater searches for Atlantis.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>4. Atlantis is confirmed to have existed.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>5. The legend of Atlantis warns against excessive pride.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>Vocabulary Matching</h2>
+                <div class="question-block">
+                    <p>Match each word with its definition:</p>
+                    <div class="vocabulary-pairs">
+                        <div class="vocabulary-item" data-match="1">Hubris</div><div class="vocabulary-item" data-match="1">Excessive pride</div>
+                        <div class="vocabulary-item" data-match="2">Cataclysm</div><div class="vocabulary-item" data-match="2">Disastrous event</div>
+                        <div class="vocabulary-item" data-match="3">Legend</div><div class="vocabulary-item" data-match="3">Traditional story</div>
+                        <div class="vocabulary-item" data-match="4">Submerge</div><div class="vocabulary-item" data-match="4">To put under water</div>
+                    </div>
+                </div>
+            </section>
+            <div class="pagination-buttons">
+                <button id="practice-prev-btn" class="hidden">Previous</button>
+                <button id="practice-next-btn">Next</button>
+            </div>
+            <div id="practice-complete-buttons" class="hidden">
+                <button id="practice-to-further-reading-btn">Next: Further Reading</button>
+            </div>
+        </div>
+        <!-- Further Reading view -->
+        <div id="further-reading-view" class="hidden-view">
+            <h2>Further Reading</h2>
+            <div class="further-reading-text">
+                <p>Plato introduced Atlantis in his dialogues <em>Timaeus</em> and <em>Critias</em> (c. 360 BCE), depicting a powerful island that sank due to hubris. Many believe he intended an allegory rather than historical account.</p>
+                <p>Archaeologists excavated Akrotiri on Santorini (Thera), covered by a volcanic eruption around 1500 BCE. Its advanced Minoan culture and sudden destruction echo Plato’s narrative, fueling theories but not confirming Atlantis.</p>
+                <p>In literature and media, Atlantis symbolizes lost knowledge and environmental warning. As modern society faces ecological challenges, the myth reminds us to balance innovation with humility before nature.</p>
+            </div>
+            <footer>
+                <div class="footer-buttons">
+                    <button id="further-reading-prev-btn">Previous</button>
+                    <button id="further-reading-next-btn">Next</button>
+                </div>
+            </footer>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const storyView = document.getElementById('story-view');
+            const practiceView = document.getElementById('practice-view');
+            const furtherReadingView = document.getElementById('further-reading-view');
+            const resetBtn = document.getElementById('reset-btn');
+            const practiceBtn = document.getElementById('practice-btn');
+            const furtherReadingBtn = document.getElementById('further-reading-btn');
+            const footerButtons = document.querySelector('.footer-buttons');
+
+            const cards = document.querySelectorAll('.story-card'); let currentIndex = 0;
+            cards.forEach((card, i) => {
+                card.style.zIndex = cards.length - i;
+                card.style.transform = `translateY(${i*8}px)`;
+                card.addEventListener('click', () => {
+                    if (i === currentIndex) {
+                        card.classList.add('gone'); currentIndex++;
+                        if (currentIndex === cards.length) {
+                            resetBtn.classList.remove('hidden');
+                            practiceBtn.classList.remove('hidden');
+                            furtherReadingBtn.classList.remove('hidden');
+                            footerButtons.classList.add('moved-to-center');
+                        }
+                    }
+                });
+            });
+            resetBtn.onclick = () => location.reload();
+            practiceBtn.onclick = () => { storyView.classList.add('hidden-view'); practiceView.classList.remove('hidden-view'); };
+            furtherReadingBtn.onclick = () => { storyView.classList.add('hidden-view'); furtherReadingView.classList.remove('hidden-view'); };
+
+            const exercises = document.querySelectorAll('.exercise-container'); let exIndex = 0;
+            const prevBtn = document.getElementById('practice-prev-btn');
+            const nextBtn = document.getElementById('practice-next-btn');
+            const completeBtns = document.getElementById('practice-complete-buttons');
+            function showExercise(idx) {
+                exercises.forEach((ex,i)=> ex.style.display = i===idx ? 'block':'none');
+                prevBtn.classList.toggle('hidden', idx===0);
+                nextBtn.textContent = idx===exercises.length-1 ? 'Finish':'Next';
+            }
+            prevBtn.onclick=()=>{ if(exIndex>0){ exIndex--; showExercise(exIndex);} };
+            nextBtn.onclick=()=>{ if(exIndex<exercises.length-1){ exIndex++; showExercise(exIndex);} else { completeBtns.classList.remove('hidden'); nextBtn.classList.add('hidden'); } };
+            showExercise(0);
+
+            document.querySelectorAll('.options').forEach(c=>c.onclick=e=>{ const b=e.target.closest('.option'); if(!b||b.classList.contains('disabled'))return; const ok=b.dataset.correct==='true'; b.classList.add(ok?'correct':'incorrect'); c.querySelectorAll('.option').forEach(o=>o.classList.add('disabled')); if(!ok){ const cb=c.querySelector('.option[data-correct="true"]'); cb&&cb.classList.add('correct'); }});
+            let sel=null;
+            document.querySelectorAll('.vocabulary-item').forEach(item=>item.onclick=()=>{ if(item.classList.contains('matched'))return; if(!sel){ sel=item; item.classList.add('selected');}else if(sel===item){ sel.classList.remove('selected'); sel=null;} else{ const match=sel.dataset.match===item.dataset.match; sel.classList.remove('selected'); if(match){ sel.classList.add('matched'); item.classList.add('matched');} else{ sel.classList.add('incorrect'); item.classList.add('incorrect'); setTimeout(()=>{ sel.classList.remove('incorrect'); item.classList.remove('incorrect');},800);} sel=null;}});
+            document.getElementById('practice-to-further-reading-btn').onclick=()=>{ practiceView.classList.add('hidden-view'); furtherReadingView.classList.remove('hidden-view'); };
+            document.getElementById('further-reading-prev-btn').onclick=()=>{ furtherReadingView.classList.add('hidden-view'); practiceView.classList.remove('hidden-view'); };
+        });
+    </script>
+</body>
+</html>

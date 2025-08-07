@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Story of Hagia Sophia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-beige: #F5F5DC;
+            --card-beige: #FAF9F6;
+            --text-dark-brown: #5C4033;
+            --cinnamon: #A0522D;
+            --gold-border: #DAA520;
+            --card-height: 400px; 
+            --correct-green: #2e7d32;
+            --incorrect-red: #c62828;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark-brown);
+            margin: 0;
+            padding: 5px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px; 
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 2.5rem;
+            color: var(--cinnamon);
+            margin: 0;
+            padding-top: 10px;
+        }
+
+        .audio-player-container {
+            text-align: center;
+            margin: 0;
+        }
+
+        .audio-player-container p {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        /* === STORY STYLES === */
+        .card-stack {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            height: calc(var(--card-height) + 100px); 
+        }
+
+        .story-card {
+            display: flex;
+            flex-direction: row; 
+            box-sizing: border-box;
+            position: absolute;
+            width: 100%;
+            height: var(--card-height);
+            background-color: var(--card-beige);
+            border: 1px solid var(--gold-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; 
+        }
+        
+        .story-card.gone {
+            transform: translateX(-120%) rotate(-15deg) !important;
+            opacity: 0;
+        }
+
+        .card-image-container {
+            width: 50%;
+            height: 100%;
+            padding: 15px;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-text {
+            width: 50%;
+            height: 100%;
+            padding: 25px;
+            overflow-y: auto;
+            text-align: justify;
+        }
+
+        .card-text h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 1.8rem;
+        }
+        
+        .card-text p {
+            /* FIXED: Font size adjusted to a 30% increase */
+            font-size: 1.3rem; 
+            margin: 0;
+            line-height: 1.7;
+        }
+        
+        /* === COMPREHENSION STYLES === */
+        #comprehension-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        .question-block {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .question-block p { margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.6; }
+        .options { display: flex; flex-wrap: wrap; gap: 10px; }
+        
+        .option {
+            background-color: white; border: 1px solid #ddd; padding: 10px 15px;
+            font-family: 'Georgia', serif; font-size: 1rem; border-radius: 8px;
+            cursor: pointer; transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            text-align: left;
+        }
+        .option:hover { border-color: var(--cinnamon); }
+        .option.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green); }
+        .option.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+        .option.disabled { cursor: not-allowed; opacity: 0.9; }
+        .option.disabled:hover { border-color: #ddd; }
+
+
+        /* === FOOTER AND VIEW SWITCHING STYLES === */
+        footer {
+            text-align: center;
+            width: 100%;
+            margin: 8px 0 15px 0; 
+            padding: 0;
+        }
+        
+        .footer-buttons {
+            transition: transform 0.5s ease-in-out;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-buttons.moved-to-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: auto; 
+            margin: 0;
+        }
+
+        .footer-buttons button {
+            background-color: var(--cinnamon); color: white; border: none;
+            padding: 12px 25px; font-family: 'Georgia', serif; font-size: 1rem;
+            font-weight: 600; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 1;
+            transition: opacity 0.5s, transform 0.3s; margin: 0 10px;
+        }
+        
+        .footer-buttons button:hover { transform: translateY(-2px); }
+        .footer-buttons button.hidden { opacity: 0; pointer-events: none; transform: translateY(10px); }
+
+        .footer-text {
+            margin-top: 10px; font-size: 0.9rem;
+            color: var(--text-dark-brown); opacity: 0.8;
+        }
+        
+        /* Class to hide/show main views */
+        .hidden-view {
+            display: none;
+        }
+        
+        /* === FURTHER READING STYLES === */
+        #further-reading-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        #further-reading-view .further-reading-text {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: justify;
+        }
+        
+        #further-reading-view p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        #further-reading-view p strong {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+        }
+
+        /* Pagination buttons for comprehension view */
+        .pagination-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The Story of Hagia Sophia</h1>
+    </header>
+
+    <div class="audio-player-container">
+        <p>Listen to the story</p>
+        <audio controls src="Hagiasophia.mp3">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <main class="main-container">
+        <div id="story-view">
+            <footer>
+                <div class="footer-buttons">
+                    <button id="reset-btn" class="hidden">Read Again</button>
+                    <button id="comprehension-btn" class="hidden">Comprehension</button>
+                    <button id="further-reading-btn" class="hidden">Further Reading</button>
+                </div>
+                <div class="footer-text">
+                    ✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨
+                </div>
+            </footer>
+
+            <ol class="card-stack">
+                <li class="story-card">
+                    <div class="card-image-container"><img src="0.jpg" alt="Hagia Sophia Title" class="card-image"></div>
+                    <div class="card-text"><h2>The Story of Hagia Sophia</h2><p>by Panagiotis Domvros</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="1.jpg" alt="Marios and his grandfather" class="card-image"></div>
+                    <div class="card-text"><p>Marios and his grandfather, Alexios, sat on a bench in a beautiful garden. In front of them stood a magnificent building with a giant dome and tall, slender towers. "Grandpa," Marios asked, "what is that amazing place?" Alexios smiled. "That, my dear Marios, is Hagia Sophia, and it has a story as grand as it looks."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="2.jpg" alt="Emperor Constantine" class="card-image"></div>
+                    <div class="card-text"><p>"A very, very long time ago," Alexios began, "a great emperor named Constantine wanted to build the biggest and most beautiful church in the world right here. He called it the 'Great Church'. Imagine a building filled with light and song!"</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="3.jpg" alt="Hagia Sophia burning" class="card-image"></div>
+                    <div class="card-text"><p>"But the city was a place of strong feelings," Alexios continued, his voice softer. "Twice, during big, angry riots, the beautiful church was burned to the ground. All that was left was smoke and memories."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="4.jpg" alt="Emperor Justinian" class="card-image"></div>
+                    <div class="card-text"><p>"But a new emperor, Justinian, refused to let the story end there. He hired two brilliant men and told them, 'Build me a church that will be remembered forever!' They designed a dome so huge it seemed to float in the air."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="5.jpg" alt="Hagia Sophia interior mosaic" class="card-image"></div>
+                    <div class="card-text"><p>"And they did! For almost a thousand years, Hagia Sophia was the largest cathedral in the world. Its walls were covered in sparkling gold mosaics, telling stories without words. It was a place of wonder and worship."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="6.jpg" alt="Sultan Mehmed II" class="card-image"></div>
+                    <div class="card-text"><p>"Then, the city changed hands. A new ruler, Sultan Mehmed II, arrived. He was so impressed by the building's beauty that he decided it should become a mosque. He added the tall towers you see, called minarets, from which the call to prayer would ring out."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="7.jpg" alt="Calligraphy in Hagia Sophia" class="card-image"></div>
+                    <div class="card-text"><p>"The new owners didn't respect the building's soul. They covered some of the Christian mosaics and added flowing Arabic calligraphy, praising their God, Allah."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="8.jpg" alt="Hagia Sophia as a museum" class="card-image"></div>
+                    <div class="card-text"><p>"Centuries passed, and the world changed again. The leaders of the new country of Turkey decided to make Hagia Sophia a museum. They uncovered the old mosaics, so the Christian and Islamic art could be seen side-by-side, telling the building's whole story."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="9.jpg" alt="Hagia Sophia as a mosque again" class="card-image"></div>
+                    <div class="card-text"><p>"And just recently, it changed once more. It became a mosque again, a place of active worship. This decision made people all over the world talk about its long and complicated history."</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="10.jpg" alt="Marios looking at Hagia Sophia" class="card-image"></div>
+                    <div class="card-text"><p>"So you see," Alexios finished, "Hagia Sophia is more than just a building. It holds the stories of emperors and sultans, of different faiths and different times, all under one magnificent dome." Marios looked at the building with new eyes, understanding that it held the history of a whole city within its walls."</p></div>
+                </li>
+            </ol>
+        </div>
+
+        <div id="comprehension-view" class="hidden-view">
+            <section class="exercise-container">
+                <h2>Multiple Choice</h2>
+                <div class="question-block"><p>1. Who first wanted to build the "Great Church" on the site of Hagia Sophia?</p><div class="options"><button class="option" data-correct="true">Emperor Constantine</button><button class="option">Emperor Justinian</button><button class="option">Sultan Mehmed II</button></div></div>
+                <div class="question-block"><p>2. Who rebuilt Hagia Sophia with its massive, "floating" dome after it was destroyed?</p><div class="options"><button class="option">Alexios</button><button class="option" data-correct="true">Emperor Justinian</button><button class="option">Sultan Mehmed II</button></div></div>
+                <div class="question-block"><p>3. What did Sultan Mehmed II do after conquering the city?</p><div class="options"><button class="option">Turned it into a museum</button><button class="option">Tore it down</button><button class="option" data-correct="true">Converted it into a mosque</button></div></div>
+                <div class="question-block"><p>4. What are the tall, slender towers added to the building called?</p><div class="options"><button class="option">Bell Towers</button><button class="option" data-correct="true">Minarets</button><button class="option">Spires</button></div></div>
+                <div class="question-block"><p>5. In the 20th century, the leaders of the new country of Turkey turned Hagia Sophia into a...</p><div class="options"><button class="option">Palace</button><button class="option">Library</button><button class="option" data-correct="true">Museum</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>True or False</h2>
+                <div class="question-block"><p>1. The original church was destroyed by an earthquake.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>2. For nearly 1,000 years, Hagia Sophia was the world's largest cathedral.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>3. When it was converted to a mosque, all Christian mosaics were destroyed.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>4. The story is being told by a grandfather named Alexios to his grandson Marios.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>5. The most recent change to the building was turning it back into a museum.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+            </section>
+            <div class="pagination-buttons">
+                <button id="comprehension-prev-btn" class="hidden">Previous</button>
+                <button id="comprehension-next-btn">Next</button>
+            </div>
+        </div>
+
+        <div id="further-reading-view" class="hidden-view">
+            <h2>Further Reading</h2>
+            <div class="further-reading-text">
+                <p>
+                    Long before Justinian’s masterpiece rose above the skyline, <strong>Emperor Constantine the Great</strong> set the stage for Hagia Sophia’s story. In 330 CE, Constantine chose the ancient city of Byzantium as the new capital of the Roman Empire and renamed it <strong>Constantinople</strong>. To honor Christian faith and imperial power, he commissioned a grand church dedicated to “Holy Wisdom” (Hagia Sophia), laying its foundations soon after. Although that original basilica wasn’t completed until 360 CE—under his nephew, Constantius II—Constantine’s vision established the site’s sacred importance.
+                </p>
+                <p>
+                    Over the next two centuries, two more churches rose and fell on the same spot: one rebuilt by Emperor Theodosius II around 415 CE after riots and another erected in 532 CE that was almost immediately destroyed during the Nika Revolt. Each reconstruction reused columns and marble from pagan temples across the empire, embedding layers of history into every stone.
+                </p>
+                <p>
+                    When <strong>Emperor Justinian I</strong> came to power, he resolved to create a church worthy of Constantinople’s glory. Between 532 and 537 CE, architects Anthemius of Tralles and Isidore of Miletus assembled tens of thousands of workers to erect the soaring dome—31 meters across—supported by four revolutionary pendentives. The completed Hagia Sophia combined Constantine’s foundational ambition with centuries of rebuilds, resulting in the vast, light-filled basilica that has stood as an architectural marvel for nearly fifteen hundred years.
+                </p>
+            </div>
+            <footer>
+                <div class="footer-buttons">
+                    <button id="further-reading-prev-btn">Previous</button>
+                    <button id="further-reading-next-btn">Next</button>
+                </div>
+            </footer>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === Main Views ===
+            const storyView = document.getElementById('story-view');
+            const comprehensionView = document.getElementById('comprehension-view');
+            const furtherReadingView = document.getElementById('further-reading-view');
+            const views = [storyView, comprehensionView, furtherReadingView];
+
+            // === Story Card Elements ===
+            const cards = document.querySelectorAll('.story-card');
+            const resetButton = document.getElementById('reset-btn');
+            const comprehensionButton = document.getElementById('comprehension-btn');
+            const furtherReadingButton = document.getElementById('further-reading-btn');
+            const footerButtons = document.querySelector('.footer-buttons'); 
+            const totalCards = cards.length;
+            let currentIndex = 0;
+            let currentViewIndex = 0;
+
+            // === Comprehension Elements ===
+            const allOptionsContainers = document.querySelectorAll('.options');
+            const comprehensionPrevBtn = document.getElementById('comprehension-prev-btn');
+            const comprehensionNextBtn = document.getElementById('comprehension-next-btn');
+
+            // === Further Reading Elements ===
+            const furtherReadingPrevBtn = document.getElementById('further-reading-prev-btn');
+            const furtherReadingNextBtn = document.getElementById('further-reading-next-btn');
+
+            // --- Story Card Logic ---
+            function setupCards() {
+                cards.forEach((card, index) => {
+                    card.style.zIndex = totalCards - index;
+                    card.style.transform = `translateY(${index * 8}px)`;
+                    
+                    const handleCardClick = () => {
+                        if (index === currentIndex) {
+                            card.classList.add('gone');
+                            currentIndex++;
+                            if (currentIndex === totalCards) {
+                                resetButton.classList.remove('hidden');
+                                comprehensionButton.classList.remove('hidden');
+                                furtherReadingButton.classList.remove('hidden');
+                                footerButtons.classList.add('moved-to-center');
+                            }
+                        }
+                    };
+                    
+                    if (card.clickListener) card.removeEventListener('click', card.clickListener);
+                    card.clickListener = handleCardClick;
+                    card.addEventListener('click', card.clickListener);
+                });
+            }
+            
+            function resetStack() {
+                currentIndex = 0;
+                cards.forEach(card => card.classList.remove('gone'));
+                resetButton.classList.add('hidden');
+                comprehensionButton.classList.add('hidden');
+                furtherReadingButton.classList.add('hidden');
+                footerButtons.classList.remove('moved-to-center');
+                setTimeout(setupCards, 500); 
+            }
+
+            // --- Comprehension Logic ---
+            allOptionsContainers.forEach(container => {
+                container.addEventListener('click', (event) => {
+                    const clickedButton = event.target.closest('.option');
+                    if (!clickedButton || clickedButton.classList.contains('disabled')) return;
+
+                    const isCorrect = clickedButton.dataset.correct === 'true';
+                    const parentQuestionBlock = clickedButton.closest('.question-block');
+                    const optionsInBlock = parentQuestionBlock.querySelectorAll('.option');
+
+                    optionsInBlock.forEach(btn => btn.classList.add('disabled'));
+
+                    if (isCorrect) {
+                        clickedButton.classList.add('correct');
+                    } else {
+                        clickedButton.classList.add('incorrect');
+                        const correctButton = parentQuestionBlock.querySelector('.option[data-correct="true"]');
+                        if (correctButton) correctButton.classList.add('correct');
+                    }
+                });
+            });
+
+            // --- Navigation Logic ---
+            function showView(viewIndex) {
+                views.forEach((view, index) => {
+                    view.classList.toggle('hidden-view', index !== viewIndex);
+                });
+                currentViewIndex = viewIndex;
+                window.scrollTo(0, 0);
+            }
+
+            comprehensionButton.addEventListener('click', () => showView(1));
+            furtherReadingButton.addEventListener('click', () => showView(2));
+            resetButton.addEventListener('click', () => {
+                showView(0);
+                resetStack();
+            });
+
+            comprehensionPrevBtn.addEventListener('click', () => showView(0));
+            comprehensionNextBtn.addEventListener('click', () => showView(2));
+
+            furtherReadingPrevBtn.addEventListener('click', () => showView(1));
+            furtherReadingNextBtn.addEventListener('click', () => showView(0));
+
+
+            // --- Initial Setup ---
+            setupCards();
+        });
+    </script>
+
+</body>
+</html>
