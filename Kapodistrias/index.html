@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assassination of a Leader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-beige: #F5F5DC;
+      --card-beige: #FAF9F6;
+      --text-dark-brown: #5C4033;
+      --cinnamon: #A0522D;
+      --gold-border: #DAA520;
+      --card-height: 400px;
+      --correct-green: #2e7d32;
+      --incorrect-red: #c62828;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Georgia', serif;
+      background-color: var(--bg-beige);
+      color: var(--text-dark-brown);
+      margin: 0;
+      padding: 5px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .main-container { width: 100%; max-width: 700px; }
+    header { text-align: center; margin-bottom: 10px; }
+    h1 { font-family: 'Roboto Slab', serif; font-size: 2.5rem; color: var(--cinnamon); margin: 0; padding-top: 10px; }
+    .audio-player-container { text-align: center; margin: 0 0 20px; }
+    .audio-player-container p { margin: 0 0 5px; font-size: 1.1rem; font-style: italic; }
+    audio { width: 100%; max-width: 400px; }
+    .card-stack { list-style: none; padding: 0; margin: 0; position: relative; height: calc(var(--card-height) + 100px); }
+    .story-card { display: flex; position: absolute; width: 100%; height: var(--card-height); background: var(--card-beige); border: 1px solid var(--gold-border); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.6s, opacity 0.6s; overflow: hidden; }
+    .story-card.gone { transform: translateX(-120%) rotate(-15deg) !important; opacity: 0; }
+    .card-image-container { width: 50%; padding: 15px; }
+    .card-image { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+    .card-text { width: 50%; padding: 25px; overflow-y: auto; text-align: justify; }
+    .card-text h2 { font-family: 'Roboto Slab', serif; font-size: 1.8rem; margin: 0 0 10px; }
+    .card-text p { font-size: 1.2rem; line-height: 1.7; margin: 0; }
+    .button-container { text-align: center; margin: 8px 0 15px; }
+    .button-container button { background-color: var(--cinnamon); color: white; border: none; padding: 12px 25px; font-family: 'Georgia', serif; font-size: 1rem; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; }
+    .button-container button.visible { opacity: 1; pointer-events: auto; }
+    #practice-view { width: 100%; margin-top: 40px; }
+    .tab-buttons { display: flex; justify-content: center; gap: 20px; }
+    .tab-buttons button { background-color: var(--cinnamon); color: white; border: none; padding: 10px 20px; font-family: 'Georgia', serif; cursor: pointer; border-radius: 20px; }
+    .tab-content { display: none; margin-top: 20px; }
+    .tab-content.active { display: block; }
+    .question-block { background: var(--card-beige); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--gold-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .option { background: white; border: 1px solid #ddd; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
+    .option.correct { background: var(--correct-green); color: white; }
+    .option.incorrect { background: var(--incorrect-red); color: white; }
+    .option.disabled { opacity: 0.9; cursor: default; }
+    .vocabulary-pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .vocabulary-item { background: white; border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
+    .vocabulary-item.selected { background: var(--cinnamon); color: white; }
+    .vocabulary-item.matched { background: var(--correct-green); color: white; cursor: default; }
+  .vocabulary-item.incorrect {
+    background: var(--incorrect-red);
+    color: white;
+  }
+  .feedback {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+  }
+  /* Vocabulary columns - add this just before </style> */
+  .vocabulary-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+  <header><h1>Assassination of a Leader</h1></header>
+  <div class="audio-player-container"><p>Listen to the story</p><audio controls src="Kapodistrias.mp3"></audio></div>
+  <main class="main-container">
+    <ol class="card-stack" id="card-stack"></ol>
+    <div class="button-container"><button id="return-btn">Return to Home</button></div>
+    <div id="practice-view">
+      <div class="tab-buttons"><button data-tab="vocab">Vocabulary</button><button data-tab="comp">Comprehension</button></div>
+      <div id="vocab" class="tab-content active">
+<h3>Exercise 1: Match the Words - Part 1</h3>
+<div class="vocabulary-pairs">
+  <div class="vocabulary-column">
+    <div class="vocabulary-item" data-match="5">apprentice</div>
+    <div class="vocabulary-item" data-match="12">thick with tension</div>
+    <div class="vocabulary-item" data-match="8">bustling</div>
+    <div class="vocabulary-item" data-match="17">residence</div>
+    <div class="vocabulary-item" data-match="3">discontent</div>
+    <div class="vocabulary-item" data-match="10">like a rising tide</div>
+    <div class="vocabulary-item" data-match="14">fragments</div>
+    <div class="vocabulary-item" data-match="1">unease</div>
+    <div class="vocabulary-item" data-match="20">their long-held influence</div>
+    <div class="vocabulary-item" data-match="7">intense</div>
+    <div class="vocabulary-item" data-match="16">fragile peace</div>
+  </div>
+  <div class="vocabulary-column">
+    <div class="vocabulary-item" data-match="3">dissatisfaction or rebellion against control</div>
+    <div class="vocabulary-item" data-match="10">steadily increasing pressure</div>
+    <div class="vocabulary-item" data-match="8">busy and full of activity</div>
+    <div class="vocabulary-item" data-match="17">grand home or building where someone important lives</div>
+    <div class="vocabulary-item" data-match="5">a person learning a trade or skill under a mentor</div>
+    <div class="vocabulary-item" data-match="12">tension or anxiety filling a space</div>
+    <div class="vocabulary-item" data-match="14">small pieces of something bigger</div>
+    <div class="vocabulary-item" data-match="1">worry or nervousness</div>
+    <div class="vocabulary-item" data-match="20">long-lasting power or control</div>
+    <div class="vocabulary-item" data-match="7">serious and powerful in emotion</div>
+    <div class="vocabulary-item" data-match="16">delicate situation likely to break</div>
+  </div>
+</div>
+
+<h3>Exercise 1: Match the Words - Part 2</h3>
+<div class="vocabulary-pairs">
+  <div class="vocabulary-column">
+    <div class="vocabulary-item" data-match="9">smooth path</div>
+    <div class="vocabulary-item" data-match="2">crisp</div>
+    <div class="vocabulary-item" data-match="19">shatter</div>
+    <div class="vocabulary-item" data-match="6">brittle</div>
+    <div class="vocabulary-item" data-match="13">foreboding</div>
+    <div class="vocabulary-item" data-match="4">commotion</div>
+    <div class="vocabulary-item" data-match="11">etched</div>
+    <div class="vocabulary-item" data-match="15">profound</div>
+    <div class="vocabulary-item" data-match="18">nurtured</div>
+    <div class="vocabulary-item" data-match="21">vowed</div>
+    <div class="vocabulary-item" data-match="22">crushing</div>
+  </div>
+  <div class="vocabulary-column">
+    <div class="vocabulary-item" data-match="9">easy and calm journey</div>
+    <div class="vocabulary-item" data-match="2">cool and fresh</div>
+    <div class="vocabulary-item" data-match="19">to break suddenly</div>
+    <div class="vocabulary-item" data-match="6">easily broken or cracked</div>
+    <div class="vocabulary-item" data-match="13">sense that something bad will happen</div>
+    <div class="vocabulary-item" data-match="4">loud noise or chaos</div>
+    <div class="vocabulary-item" data-match="11">deeply marked or impressed</div>
+    <div class="vocabulary-item" data-match="15">very deep or intense</div>
+    <div class="vocabulary-item" data-match="18">helped to grow and develop</div>
+    <div class="vocabulary-item" data-match="21">promised solemnly</div>
+    <div class="vocabulary-item" data-match="22">overwhelmingly distressing</div>
+  </div>
+</div>
+        <h3>Exercise 2: Fill in the Gap</h3>
+        <div class="question-block"><p>1. Vasiliki worked as an ______ at the Governor’s residence.</p><div class="options"><div class="option" data-correct="false">scholar</div><div class="option" data-correct="true">apprentice</div><div class="option" data-correct="false">influence</div></div></div>
+        <div class="question-block"><p>2. The air in Nafplio was ______ with tension, hinting at upcoming unrest.</p><div class="options"><div class="option" data-correct="false">brittle</div><div class="option" data-correct="true">thick with tension</div><div class="option" data-correct="false">etched</div></div></div>
+        <div class="question-block"><p>3. The port city was ______ with merchants and travelers.</p><div class="options"><div class="option" data-correct="true">bustling</div><div class="option" data-correct="false">nurtured</div><div class="option" data-correct="false">crushing</div></div></div>
+        <div class="question-block"><p>4. Complaints and ______ of dissatisfaction echoed in the tavernas.</p><div class="options"><div class="option" data-correct="false">unease</div><div class="option" data-correct="true">discontent</div><div class="option" data-correct="false">scholar</div></div></div>
+        <div class="question-block"><p>5. The man spoke with ______ emotion about taking action.</p><div class="options"><div class="option" data-correct="true">intense</div><div class="option" data-correct="false">brittle</div><div class="option" data-correct="false">vowed</div></div></div>
+        <div class="question-block"><p>6. The fragile peace in Nafplio could ______ with the slightest spark.</p><div class="options"><div class="option" data-correct="false">nurture</div><div class="option" data-correct="true">shatter</div><div class="option" data-correct="false">smooth</div></div></div>
+        <div class="question-block"><p>7. Her memories of that day were deeply ______ in her mind.</p><div class="options"><div class="option" data-correct="false">crushed</div><div class="option" data-correct="true">etched</div><div class="option" data-correct="false">justified</div></div></div>
+        <div class="question-block"><p>8. The Governor’s dream had been carefully ______ over the years.</p><div class="options"><div class="option" data-correct="true">nurtured</div><div class="option" data-correct="false">shattered</div><div class="option" data-correct="false">crisp</div></div></div>
+        <div class="question-block"><p>9. The atmosphere before the assassination felt ______, like a warning.</p><div class="options"><div class="option" data-correct="true">foreboding</div><div class="option" data-correct="false">residence</div><div class="option" data-correct="false">commotion</div></div></div>
+        <div class="question-block"><p>10. She ______ never to forget what she witnessed that morning.</p><div class="options"><div class="option" data-correct="false">intense</div><div class="option" data-correct="true">vowed</div><div class="option" data-correct="false">apprentice</div></div></div>
+      </div>
+      <div id="comp" class="tab-content">
+        <h3>Exercise: True or False</h3>
+        <div class="question-block"><p>1. Vasiliki worked as a maid in the Governor’s residence.</p><div class="options"><div class="option" data-correct="false">True</div><div class="option" data-correct="true">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>2. Governor Kapodistrias was popular with all social classes in Nafplio.</p><div class="options"><div class="option" data-correct="false">True</div><div class="option" data-correct="true">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>3. Vasiliki personally knew the man who spoke of “drastic measures.”</p><div class="options"><div class="option" data-correct="false">True</div><div class="option" data-correct="true">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>4. The assassination occurred while Vasiliki was attending church.</p><div class="options"><div class="option" data-correct":"false">True</div><div class="option" data-correct":"true">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>5. Vasiliki confided in her uncle, who worked at the local library.</p><div class="options"><div class="option" data-correct="true">True</div><div class="option" data-correct="false">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>6. The man who argued believed he was restoring true freedom.</p><div class="options"><div class="option" data-correct="true">True</div><div class="option" data-correct="false">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>7. The news of the assassination spread like wildfire.</p><div class="options"><div class="option" data-correct="false">True</div><div class="option" data-correct="true">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>8. The phrase “crushing sense of helplessness” describes Vasiliki’s reaction.</p><div class="options"><div class="option" data-correct="true">True</div><div class="option" data-correct="false">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>9. Kapodistrias had no plans for the future of Greece.</p><div class="options"><div class="option" data-correct="false">True</div><div class="option" data-correct="true">False</div></div><span class="feedback"></span></div>
+        <div class="question-block"><p>10. She vowed to remember and write about the events.</p><div class="options"><div class="option" data-correct="true">True</div><div class="option" data-correct="false">False</div></div><span class="feedback"></span></div>
+      </div>
+    </div>
+  </main>
+  <script>
+    // Story data
+    const story = [
+      {img:'0.jpg', text:`Vasiliki was a bright young woman in Nafplio, 1831, working as an <strong>apprentice</strong> at the Governor's grand <strong>residence</strong>. She admired Governor Kapodistrias, a man dedicated to building a new, strong Greece. Yet, the air in the <strong>bustling</strong> port city was <strong>thick with tension</strong>, a quiet hum beneath the daily sounds.`},
+      {img:'1.jpg', text:`Governor Kapodistrias worked tirelessly, his lamp often burning late into the night. He had many plans for the young nation, but not everyone agreed with his strict methods and centralizing power. Whispers of <strong>discontent</strong> grew louder in the tavernas and marketplaces, <strong>like a rising tide</strong>.`},
+      {img:'2.jpg', text:`Vasiliki often heard <strong>fragments</strong> of conversations – complaints about new taxes, about old traditions being ignored, about powerful families losing <strong>their long-held influence</strong>. She tried to make sense of it all, feeling a growing <strong>unease</strong> settle in her heart.`},
+      {img:'3.jpg', text:`One evening, while delivering documents to the Governor's study, Vasiliki overheard a heated argument between a stern-faced man and another official. The angry man spoke of "drastic measures" and "restoring true freedom," his voice low but <strong>intense</strong>.`},
+      {img:'4.jpg', text:`Vasiliki felt a chill. She knew he was from a powerful family, known for their fierce independence, often at odds with the Governor's authority. She worried deeply about what "drastic measures" might truly mean for the <strong>fragile peace</strong> of Nafplio.`},
+      {img:'5.jpg', text:`She confided in her Uncle Stamatios, a wise old scholar who worked at the local library. "The path to a new nation is never a <strong>smooth path</strong>, Vasiliki," he told her, his voice calm, "but some believe the ends justify any means, no matter how terrible."`},
+      {img:'6.jpg', text:`The very next morning, a Sunday, Vasiliki was on her way to church, a sense of <strong>foreboding</strong> heavy in the <strong>crisp</strong> morning air. The usual Sunday calm felt strangely <strong>brittle</strong>, as if it could <strong>shatter</strong> at any moment.`},
+      {img:'7.jpg', text:`As she approached the Church of Saint Spyridon, a sudden <strong>commotion</strong> erupted. Shouts, then a loud report echoed through the square. Panic spread instantly. Vasiliki saw people running, their faces <strong>etched</strong> with pure horror and disbelief.`},
+      {img:'8.jpg', text:`The news spread like wildfire: Governor Kapodistrias had been assassinated. The dream of a unified Greece, so carefully <strong>nurtured</strong> and fought for, now seemed <strong>to hang by a thread</strong>. Vasiliki felt a <strong>profound</strong> sadness and a <strong>crushing</strong> sense of helplessness.`},
+      {img:'9.jpg', text:`Though the future of Greece was uncertain, Vasiliki knew she must remember this day. She <strong>vowed</strong> to use her words, her pen, and her memory to tell the story of Governor Kapodistrias and the struggles of a nation finding its way, so that future generations might learn from the past.`}
+    ];
+    // Populate cards
+    const stack = document.getElementById('card-stack');
+    story.forEach((s, i) => {
+      const li = document.createElement('li');
+      li.className = 'story-card';
+      li.innerHTML = `<div class="card-image-container"><img src="${s.img}" class="card-image"></div><div class="card-text"><h2>${i+1}</h2><p>${s.text}</p></div>`;
+      stack.appendChild(li);
+    });
+    // Card interactivity
+    const cards = document.querySelectorAll('.story-card'); let currentIndex = 0;
+    cards.forEach((c, i) => {
+      c.style.zIndex = cards.length - i;
+      c.style.transform = `translateY(${i * 8}px)`;
+      c.addEventListener('click', () => {
+        if (i === currentIndex) {
+          c.classList.add('gone');
+          currentIndex++;
+          if (currentIndex === cards.length) document.getElementById('return-btn').classList.add('visible');
+        }
+      });
+    });
+    document.getElementById('return-btn').addEventListener('click', () => location.href = 'index.html');
+    // Tabs
+    document.querySelectorAll('.tab-buttons button').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active')); document.getElementById(btn.dataset.tab).classList.add('active'); }));
+    // Options interactivity
+    document.querySelectorAll('.options').forEach(container => {
+      container.querySelectorAll('.option').forEach(opt => opt.addEventListener('click', () => {
+        if (container.classList.contains('locked')) return;
+        const correct = opt.dataset.correct === 'true'; opt.classList.add(correct ? 'correct' : 'incorrect'); container.classList.add('locked'); if (!correct) container.querySelector('[data-correct="true"]').classList.add('correct');
+      }));
+    });
+    // Vocabulary matching
+    let sel = null; document.querySelectorAll('.vocabulary-item').forEach(item => item.addEventListener('click', () => { if (item.classList.contains('matched')) return; if (!sel) { sel = item; item.classList.add('selected'); } else { const match = sel.dataset.match === item.dataset.match; if (match) { sel.classList.add('matched'); item.classList.add('matched'); } else { sel.classList.add('incorrect'); item.classList.add('incorrect'); setTimeout(() => { sel.classList.remove('incorrect'); item.classList.remove('incorrect'); }, 800); } sel.classList.remove('selected'); sel = null; } }));
+  </script>
+</body>
+</html>
