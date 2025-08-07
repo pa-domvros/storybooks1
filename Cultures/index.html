@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rina and the Whispering Valley</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-beige: #F5F5DC;
+            --card-beige: #FAF9F6;
+            --text-dark-brown: #5C4033;
+            --cinnamon: #A0522D;
+            --gold-border: #DAA520;
+            --card-height: 400px;
+            --correct-green: #2e7d32;
+            --incorrect-red: #c62828;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark-brown);
+            margin: 0;
+            padding: 5px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 2.5rem;
+            color: var(--cinnamon);
+            margin: 0;
+            padding-top: 10px;
+        }
+
+        .audio-player-container {
+            text-align: center;
+            margin: 0 0 20px;
+        }
+
+        .audio-player-container p {
+            margin: 0 0 5px;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .card-stack {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            height: calc(var(--card-height) + 100px);
+        }
+
+        .story-card {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            width: 100%;
+            height: var(--card-height);
+            background-color: var(--card-beige);
+            border: 1px solid var(--gold-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .story-card.gone {
+            transform: translateX(-120%) rotate(-15deg) !important;
+            opacity: 0;
+        }
+
+        .card-image-container {
+            width: 50%;
+            padding: 15px;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-text {
+            width: 50%;
+            padding: 25px;
+            overflow-y: auto;
+            text-align: justify;
+        }
+
+        .card-text h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .card-text p {
+            font-size: 1.2rem;
+            margin: 0;
+            line-height: 1.7;
+        }
+        
+        #practice-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        .question-block {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .question-block p {
+            margin: 0 0 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            text-align: left;
+        }
+        
+        .option:hover { border-color: var(--cinnamon); }
+        .option.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green); }
+        .option.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+        .option.disabled { cursor: not-allowed; opacity: 0.9; }
+
+        .vocabulary-pairs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .vocabulary-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .vocabulary-item:hover { border-color: var(--cinnamon); }
+        .vocabulary-item.selected { background-color: var(--cinnamon); color: white; border-color: var(--cinnamon); }
+        .vocabulary-item.matched { background-color: var(--correct-green); color: white; border-color: var(--correct-green); cursor: default; }
+        .vocabulary-item.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+
+        footer {
+            text-align: center;
+            width: 100%;
+            margin: 8px 0 15px;
+            position: relative;
+        }
+        
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .footer-buttons.moved-to-center {
+            position: absolute;
+            top: calc(var(--card-height) + 40px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .footer-buttons button,
+        .pagination-buttons button {
+            background-color: var(--cinnamon);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Georgia', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 0 10px;
+            transition: opacity 0.5s, transform 0.3s;
+        }
+        
+        .footer-buttons button.hidden,
+        .pagination-buttons button.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+        }
+
+        .footer-text {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dark-brown);
+            opacity: 0.8;
+        }
+
+        .hidden-view { display: none; }
+        .pagination-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header><h1>Rina and the Whispering Valley</h1></header>
+    <div class="audio-player-container">
+        <p>Listen to the story</p>
+        <audio controls src="Cultures.mp3">Your browser does not support the audio element.</audio>
+    </div>
+    <main class="main-container">
+        <div id="story-view">
+            <footer>
+                <div class="footer-buttons">
+                    <button id="reset-btn" class="hidden">Read Again</button>
+                    <button id="practice-btn" class="hidden">Practice</button>
+                </div>
+                <div class="footer-text">✨✍️ Written by Panagiotis Domvros ✍️✨</div>
+            </footer>
+            <ol class="card-stack">
+                <li class="story-card">
+                    <div class="card-image-container"><img src="0.jpg" alt="Rina and the Whispering Valley Title" class="card-image"></div>
+                    <div class="card-text"><h2>Rina and the Whispering Valley</h2><p>Written by Panagiotis Domvros</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="1.jpg" alt="Gleaming city of Chromia" class="card-image"></div>
+                    <div class="card-text"><p>In the gleaming city of Chromia, where every building sparkled with efficiency and every thought was perfectly logical, lived a bright young student named Rina. She believed that the Chromian way was the only way.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="2.jpg" alt="Exchange programme to Veridian Valley" class="card-image"></div>
+                    <div class="card-text"><p>One day, Rina was chosen for an exchange programme to the mysterious Veridian Valley, a place known for its ancient traditions and deep connection to nature. Rina packed her bags, a little sceptical but curious.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="3.jpg" alt="Buildings woven from living trees" class="card-image"></div>
+                    <div class="card-text"><p>When Rina arrived, Veridian Valley was unlike anything she had ever seen. Buildings were woven from living trees, and people moved with a gentle, unhurried rhythm. It felt… slow.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="4.jpg" alt="Meeting Taro" class="card-image"></div>
+                    <div class="card-text"><p>She met Taro, a kind young man with eyes as deep as the forest. He tried to explain their customs, like the morning 'Sun-Greeting Dance' or the 'Whispering Wind Festival'. Rina just nodded, thinking, "Why don't they just use a calendar app?"</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="5.jpg" alt="Automated irrigation suggestion" class="card-image"></div>
+                    <div class="card-text"><p>Rina tried to introduce Chromian efficiency. She suggested automated irrigation for their crops instead of their careful, hand-watered methods. "It's just faster!" she exclaimed. Taro simply smiled, "Faster isn't always better, Rina. The plants tell us what they need."</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="6.jpg" alt="Drought striking Veridian Valley" class="card-image"></div>
+                    <div class="card-text"><p>Then, a great drought struck. The Chromian automated systems Rina had tried to implement failed. The plants withered, and the valley grew worried. Rina felt helpless.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="7.jpg" alt="Rain-Calling Ritual" class="card-image"></div>
+                    <div class="card-text"><p>Taro and the elders began their ancient 'Rain-Calling Ritual'. It involved intricate songs, rhythmic drumming, and a deep connection to the land. Rina watched, at first dismissive, then intrigued by their unwavering faith.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="8.jpg" alt="Tiny droplets begin to fall" class="card-image"></div>
+                    <div class="card-text"><p>Slowly, miraculously, tiny droplets began to fall. The ritual had worked! Rina saw the joy and relief on everyone's faces. It wasn't about logic; it was about understanding, respect, and harmony.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="9.jpg" alt="Rina's realization" class="card-image"></div>
+                    <div class="card-text"><p>Rina realised that true strength came from embracing all ways of knowing. The Chromian way was good for some things, but the Veridian way held wisdom her city had forgotten. She had learned to look beyond her own understanding.</p></div>
+                </li>
+                <li class="story-card">
+                    <div class="card-image-container"><img src="10.jpg" alt="Return to Chromia" class="card-image"></div>
+                    <div class="card-text"><p>When Rina returned to Chromia, she shared her stories not of efficiency, but of respect, understanding, and the beautiful tapestry of human experience. She knew that different was not wrong, just different, and that was a wonderful thing.</p></div>
+                </li>
+            </ol>
+        </div>
+        <div id="practice-view" class="hidden-view">
+            <section class="exercise-container">
+                <h2>Reading Comprehension</h2>
+                <div class="question-block"><p>1. What did Rina initially believe about the Chromian way?</p><div class="options"><button class="option" data-correct="true">It was the only valid way</button><button class="option">It was too slow</button><button class="option">It was mysterious</button></div></div>
+                <div class="question-block"><p>2. Veridian Valley is known for its connection to what?</p><div class="options"><button class="option" data-correct="true">Nature and ancient traditions</button><button class="option">Technology and logic</button><button class="option">Music and art festivals</button></div></div>
+                <div class="question-block"><p>3. What did Rina suggest for irrigating crops?</p><div class="options"><button class="option" data-correct="true">Automated irrigation systems</button><button class="option">Hand-watered methods</button><button class="option">Rainwater harvesting</button></div></div>
+                <div class="question-block"><p>4. Who performed the Rain-Calling Ritual?</p><div class="options"><button class="option">Chromian engineers</button><button class="option" data-correct="true">Taro and the valley elders</button><button class="option">Rina alone</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>True or False</h2>
+                <div class="question-block"><p>1. Rina was initially sceptical of the Veridian Valley traditions.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>2. The Chromian automated systems saved the valley from drought.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>3. The Rain-Calling Ritual involved intricate songs and drumming.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>4. Rina returned to Chromia with a respect for different ways of knowing.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>Vocabulary Matching</h2>
+                <div class="question-block">
+                    <p>Match each word with its definition:</p>
+                    <div class="vocabulary-pairs">
+                        <div class="vocabulary-item" data-match="1">Sceptical</div><div class="vocabulary-item" data-match="1">Doubtful or questioning</div>
+                        <div class="vocabulary-item" data-match="2">Unhurried</div><div class="vocabulary-item" data-match="2">Done without hurry; calm and slow</div>
+                        <div class="vocabulary-item" data-match="3">Intricate</div><div class="vocabulary-item" data-match="3">Very detailed and complicated</div>
+                        <div class="vocabulary-item" data-match="4">Tapestry</div><div class="vocabulary-item" data-match="4">A complex combination of things or sequence of events</div>
+                    </div>
+                </div>
+            </section>
+            <div class="pagination-buttons">
+                <button id="practice-prev-btn" class="hidden">Previous</button>
+                <button id="practice-next-btn">Next</button>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const storyView = document.getElementById('story-view');
+            const practiceView = document.getElementById('practice-view');
+            const resetBtn = document.getElementById('reset-btn');
+            const practiceBtn = document.getElementById('practice-btn');
+            const footerButtons = document.querySelector('.footer-buttons');
+
+            const cards = document.querySelectorAll('.story-card'); let currentIndex = 0;
+            cards.forEach((card, i) => {
+                card.style.zIndex = cards.length - i;
+                card.style.transform = `translateY(${i*8}px)`;
+                card.addEventListener('click', () => {
+                    if (i === currentIndex) {
+                        card.classList.add('gone'); currentIndex++;
+                        if (currentIndex === cards.length) {
+                            resetBtn.classList.remove('hidden');
+                            practiceBtn.classList.remove('hidden');
+                            footerButtons.classList.add('moved-to-center');
+                        }
+                    }
+                });
+            });
+            resetBtn.onclick = () => location.reload();
+            practiceBtn.onclick = () => { storyView.classList.add('hidden-view'); practiceView.classList.remove('hidden-view'); };
+
+            const exercises = document.querySelectorAll('.exercise-container'); let exIndex = 0;
+            const prevBtn = document.getElementById('practice-prev-btn');
+            const nextBtn = document.getElementById('practice-next-btn');
+
+            function showExercise(idx) {
+                exercises.forEach((ex,i)=> ex.style.display = i===idx ? 'block':'none');
+                prevBtn.classList.toggle('hidden', idx===0);
+                nextBtn.classList.toggle('hidden', idx === exercises.length -1);
+            }
+
+            prevBtn.onclick=()=>{ if(exIndex>0){ exIndex--; showExercise(exIndex);} };
+            nextBtn.onclick=()=>{ if(exIndex<exercises.length-1){ exIndex++; showExercise(exIndex);} };
+            showExercise(0);
+
+            document.querySelectorAll('.options').forEach(c=>c.onclick=e=>{ const b=e.target.closest('.option'); if(!b||b.classList.contains('disabled'))return; const ok=b.dataset.correct==='true'; b.classList.add(ok?'correct':'incorrect'); c.querySelectorAll('.option').forEach(o=>o.classList.add('disabled')); if(!ok){ const cb=c.querySelector('.option[data-correct="true"]'); cb&&cb.classList.add('correct'); }});
+            let sel=null;
+            document.querySelectorAll('.vocabulary-item').forEach(item=>item.onclick=()=>{ if(item.classList.contains('matched'))return; if(!sel){ sel=item; item.classList.add('selected');}else if(sel===item){ sel.classList.remove('selected'); sel=null;} else{ const match=sel.dataset.match===item.dataset.match; sel.classList.remove('selected'); if(match){ sel.classList.add('matched'); item.classList.add('matched');} else{ sel.classList.add('incorrect'); item.classList.add('incorrect'); setTimeout(()=>{ sel.classList.remove('incorrect'); item.classList.remove('incorrect');},800);} sel=null;}});
+        });
+    </script>
+</body>
+</html>
