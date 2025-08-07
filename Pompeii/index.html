@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Story of Pompeii</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-beige: #F5F5DC;
+            --card-beige: #FAF9F6;
+            --text-dark-brown: #5C4033;
+            --cinnamon: #A0522D;
+            --gold-border: #DAA520;
+            --card-height: 400px; 
+            --correct-green: #2e7d32;
+            --incorrect-red: #c62828;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background-color: var(--bg-beige);
+            color: var(--text-dark-brown);
+            margin: 0;
+            padding: 5px 20px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px; 
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 2.5rem;
+            color: var(--cinnamon);
+            margin: 0;
+            padding-top: 10px;
+        }
+
+        .audio-player-container {
+            text-align: center;
+            margin: 0;
+        }
+
+        .audio-player-container p {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        /* === STORY STYLES === */
+        .card-stack {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            height: calc(var(--card-height) + 100px); 
+        }
+
+        .story-card {
+            display: flex;
+            flex-direction: row; 
+            box-sizing: border-box;
+            position: absolute;
+            width: 100%;
+            height: var(--card-height);
+            background-color: var(--card-beige);
+            border: 1px solid var(--gold-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; 
+        }
+        
+        .story-card.gone {
+            transform: translateX(-120%) rotate(-15deg) !important;
+            opacity: 0;
+        }
+
+        .card-image-container {
+            width: 50%;
+            height: 100%;
+            padding: 15px;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-text {
+            width: 50%;
+            height: 100%;
+            padding: 25px;
+            overflow-y: auto;
+            text-align: justify;
+        }
+
+        .card-text h2 {
+            font-family: 'Roboto Slab', serif;
+            font-size: 1.8rem;
+        }
+        
+        .card-text p {
+            font-size: 1.3rem; 
+            margin: 0;
+            line-height: 1.7;
+        }
+        
+        /* === COMPREHENSION STYLES === */
+        #comprehension-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        .question-block {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .question-block p { margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.6; }
+        .options { display: flex; flex-wrap: wrap; gap: 10px; }
+        
+        .option {
+            background-color: white; border: 1px solid #ddd; padding: 10px 15px;
+            font-family: 'Georgia', serif; font-size: 1rem; border-radius: 8px;
+            cursor: pointer; transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            text-align: left;
+        }
+        .option:hover { border-color: var(--cinnamon); }
+        .option.correct { background-color: var(--correct-green); color: white; border-color: var(--correct-green); }
+        .option.incorrect { background-color: var(--incorrect-red); color: white; border-color: var(--incorrect-red); }
+        .option.disabled { cursor: not-allowed; opacity: 0.9; }
+        .option.disabled:hover { border-color: #ddd; }
+
+
+        /* === FOOTER AND VIEW SWITCHING STYLES === */
+        footer {
+            text-align: center;
+            width: 100%;
+            margin: 8px 0 15px 0; 
+            padding: 0;
+        }
+        
+        .footer-buttons {
+            transition: transform 0.5s ease-in-out;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-buttons.moved-to-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: auto; 
+            margin: 0;
+        }
+
+        .footer-buttons button {
+            background-color: var(--cinnamon); color: white; border: none;
+            padding: 12px 25px; font-family: 'Georgia', serif; font-size: 1rem;
+            font-weight: 600; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); opacity: 1;
+            transition: opacity 0.5s, transform 0.3s; margin: 0 10px;
+        }
+        
+        .footer-buttons button:hover { transform: translateY(-2px); }
+        .footer-buttons button.hidden { opacity: 0; pointer-events: none; transform: translateY(10px); }
+
+        .footer-text {
+            margin-top: 10px; font-size: 0.9rem;
+            color: var(--text-dark-brown); opacity: 0.8;
+        }
+        
+        /* Class to hide/show main views */
+        .hidden-view {
+            display: none;
+        }
+        
+        /* === FURTHER READING STYLES === */
+        #further-reading-view h2 {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+            border-bottom: 2px solid var(--gold-border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        #further-reading-view .further-reading-text {
+            background-color: var(--card-beige);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--gold-border);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: justify;
+        }
+        
+        #further-reading-view p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        #further-reading-view p strong {
+            font-family: 'Roboto Slab', serif;
+            color: var(--cinnamon);
+        }
+
+        /* Pagination buttons for comprehension view */
+        .pagination-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The Story of Pompeii</h1>
+    </header>
+
+    <div class="audio-player-container">
+        <p>Listen to the story</p>
+        <audio controls src="Pompeii.mp3">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <main class="main-container">
+        <div id="story-view">
+            <footer>
+                <div class="footer-buttons">
+                    <button id="reset-btn" class="hidden">Read Again</button>
+                    <button id="comprehension-btn" class="hidden">Comprehension</button>
+                    <button id="further-reading-btn" class="hidden">Further Reading</button>
+                </div>
+                <div class="footer-text">
+                    ✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, 2025 ✍️✨
+                </div>
+            </footer>
+
+            <ol class="card-stack">
+                <li class="story-card">
+                    <div class="card-image-container"><img src="0.jpg" alt="Pompeii Title" class="card-image"></div>
+                    <div class="card-text"><h2>The Day the Mountain Roared</h2><p>by Panagiotis Domvros</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="1.jpg" alt="Ancient Pompeii" class="card-image"></div>
+                    <div class="card-text"><p>Long, long ago, in ancient Italy, there was a beautiful city called Pompeii. It sat at the foot of a mighty mountain, Mount Vesuvius. The people of Pompeii loved their city very much.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="2.jpg" alt="Busy streets of Pompeii" class="card-image"></div>
+                    <div class="card-text"><p>Pompeii was a busy place! Streets were full of people. There were many shops selling goods, and lively bars where friends met. People enjoyed plays at the theatre and watched exciting games at the amphitheatre.</p></div>
+                </li>
+                 <li class="story-card">
+                     <div class="card-image-container"><img src="3.jpg" alt="Daily life in Pompeii" class="card-image"></div>
+                    <div class="card-text"><p>Every day, citizens visited the public baths to relax and clean themselves. Taverns offered delicious food and drinks. Life in Pompeii was full of joy and activity.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="4.jpg" alt="Aura playing with her dog" class="card-image"></div>
+                    <div class="card-text"><p>One warm August day in AD 79, the sun shone brightly. Aura, a young girl, was playing with her dog. Her mother, Livia, was preparing lunch. Everything seemed peaceful.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="5.jpg" alt="Mount Vesuvius erupting" class="card-image"></div>
+                    <div class="card-text"><p>Suddenly, the ground began to shake! A loud roar came from Mount Vesuvius. Dark clouds of smoke and ash shot into the sky. People looked up, confused and worried.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="6.jpg" alt="Pompeii during the eruption" class="card-image"></div>
+                    <div class="card-text"><p>Then, rocks and hot ash began to fall like rain. Buildings started to shake and collapse. Fires broke out everywhere. People screamed, and children cried in fear.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="7.jpg" alt="Pompeii buried under ash" class="card-image"></div>
+                    <div class="card-text"><p>Some people prayed, hoping for a miracle. But the hot lava flowed down the mountain, covering everything. Pompeii was buried completely under a thick layer of ash and rock.</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="8.jpg" alt="Archaeologists digging" class="card-image"></div>
+                    <div class="card-text"><p>For almost 1,700 years, Pompeii lay hidden and forgotten. Then, in 1748, archaeologists started digging. They could not believe what they found!</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="9.jpg" alt="Preserved city of Pompeii" class="card-image"></div>
+                    <div class="card-text"><p>The city was perfectly preserved! Shops, temples, and a theatre were still there. Even beautiful wall paintings looked fresh. It was like a time capsule!</p></div>
+                </li>
+                <li class="story-card">
+                     <div class="card-image-container"><img src="10.jpg" alt="Plaster casts of victims" class="card-image"></div>
+                    <div class="card-text"><p>The ash had hardened around people's bodies, keeping their shapes. Archaeologists poured plaster into these spaces, making casts of the people. They also found a half-eaten loaf of bread, eggs, a kettle on the fire, and a "Cave Canem" (Beware of Dog) sign!</p></div>
+                </li>
+            </ol>
+        </div>
+
+        <div id="comprehension-view" class="hidden-view">
+            <section class="exercise-container">
+                <h2>Multiple Choice</h2>
+                <div class="question-block"><p>1. What is the name of the mountain that overlooks Pompeii?</p><div class="options"><button class="option">Mount Etna</button><button class="option" data-correct="true">Mount Vesuvius</button><button class="option">Mount Olympus</button></div></div>
+                <div class="question-block"><p>2. In what year did the volcanic eruption happen?</p><div class="options"><button class="option">AD 1748</button><button class="option">AD 790</button><button class="option" data-correct="true">AD 79</button></div></div>
+                <div class="question-block"><p>3. What fell from the sky during the eruption?</p><div class="options"><button class="option">Heavy rain and hail</button><button class="option">Snow and ice</button><button class="option" data-correct="true">Rocks and hot ash</button></div></div>
+                <div class="question-block"><p>4. What does the Latin phrase "Cave Canem" mean?</p><div class="options"><button class="option" data-correct="true">Beware of Dog</button><button class="option">Welcome Home</button><button class="option">Enter Freely</button></div></div>
+                <div class="question-block"><p>5. What did archaeologists pour into the spaces left by bodies to create casts?</p><div class="options"><button class="option">Cement</button><button class="option">Molten rock</button><button class="option" data-correct="true">Plaster</button></div></div>
+            </section>
+            <section class="exercise-container">
+                <h2>True or False</h2>
+                <div class="question-block"><p>1. The people of Pompeii knew the volcano was about to erupt.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>2. The city was discovered just a few years after it was buried.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>3. Life in Pompeii was quiet and slow-paced.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+                <div class="question-block"><p>4. The ash from the volcano helped to preserve the city.</p><div class="options"><button class="option" data-correct="true">True</button><button class="option">False</button></div></div>
+                <div class="question-block"><p>5. Archaeologists found a fully cooked meal ready to be served.</p><div class="options"><button class="option">True</button><button class="option" data-correct="true">False</button></div></div>
+            </section>
+            <div class="pagination-buttons">
+                <button id="comprehension-prev-btn" class="hidden">Previous</button>
+                <button id="comprehension-next-btn">Next</button>
+            </div>
+        </div>
+
+        <div id="further-reading-view" class="hidden-view">
+            <h2>Further Reading</h2>
+            <div class="further-reading-text">
+                <p>
+                    The Roman city of Pompeii, nestled in the shadow of <strong>Mount Vesuvius</strong>, was a thriving hub of commerce and daily life. Before its catastrophic eruption in AD 79, the city was a popular holiday destination for wealthy Romans, famed for its luxurious villas and bustling markets. However, the ground had given warnings before. A major earthquake in AD 62 caused widespread damage, and many rebuilding projects were still underway when the final disaster struck. Pliny the Younger, a Roman administrator who witnessed the eruption from across the Bay of Naples, wrote letters detailing the event, providing one of history’s most valuable firsthand accounts of a volcanic eruption.
+                </p>
+                <p>
+                    When archaeologists began the systematic excavation of Pompeii in the 18th century, they unearthed an entire city frozen in time. The layers of hardened ash and pumice had acted as a preservative, protecting buildings, frescoes, and everyday objects from the elements. The famous plaster casts of the victims, created by pioneering archaeologist <strong>Giuseppe Fiorelli</strong> in the 1860s, offer a poignant and human glimpse into the final moments of the city’s inhabitants. Today, Pompeii is a UNESCO World Heritage site and continues to be a subject of intense study, revealing more about Roman life with every new discovery.
+                </p>
+            </div>
+            <footer>
+                <div class="footer-buttons">
+                    <button id="further-reading-prev-btn">Previous</button>
+                    <button id="further-reading-next-btn">Next</button>
+                </div>
+            </footer>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === Main Views ===
+            const storyView = document.getElementById('story-view');
+            const comprehensionView = document.getElementById('comprehension-view');
+            const furtherReadingView = document.getElementById('further-reading-view');
+            const views = [storyView, comprehensionView, furtherReadingView];
+
+            // === Story Card Elements ===
+            const cards = document.querySelectorAll('.story-card');
+            const resetButton = document.getElementById('reset-btn');
+            const comprehensionButton = document.getElementById('comprehension-btn');
+            const furtherReadingButton = document.getElementById('further-reading-btn');
+            const footerButtons = document.querySelector('.footer-buttons'); 
+            const totalCards = cards.length;
+            let currentIndex = 0;
+            let currentViewIndex = 0;
+
+            // === Comprehension Elements ===
+            const allOptionsContainers = document.querySelectorAll('.options');
+            const comprehensionPrevBtn = document.getElementById('comprehension-prev-btn');
+            const comprehensionNextBtn = document.getElementById('comprehension-next-btn');
+
+            // === Further Reading Elements ===
+            const furtherReadingPrevBtn = document.getElementById('further-reading-prev-btn');
+            const furtherReadingNextBtn = document.getElementById('further-reading-next-btn');
+
+            // --- Story Card Logic ---
+            function setupCards() {
+                cards.forEach((card, index) => {
+                    card.style.zIndex = totalCards - index;
+                    card.style.transform = `translateY(${index * 8}px)`;
+                    
+                    const handleCardClick = () => {
+                        if (index === currentIndex) {
+                            card.classList.add('gone');
+                            currentIndex++;
+                            if (currentIndex === totalCards) {
+                                resetButton.classList.remove('hidden');
+                                comprehensionButton.classList.remove('hidden');
+                                furtherReadingButton.classList.remove('hidden');
+                                footerButtons.classList.add('moved-to-center');
+                            }
+                        }
+                    };
+                    
+                    if (card.clickListener) card.removeEventListener('click', card.clickListener);
+                    card.clickListener = handleCardClick;
+                    card.addEventListener('click', card.clickListener);
+                });
+            }
+            
+            function resetStack() {
+                currentIndex = 0;
+                cards.forEach(card => card.classList.remove('gone'));
+                resetButton.classList.add('hidden');
+                comprehensionButton.classList.add('hidden');
+                furtherReadingButton.classList.add('hidden');
+                footerButtons.classList.remove('moved-to-center');
+                setTimeout(setupCards, 500); 
+            }
+
+            // --- Comprehension Logic ---
+            allOptionsContainers.forEach(container => {
+                container.addEventListener('click', (event) => {
+                    const clickedButton = event.target.closest('.option');
+                    if (!clickedButton || clickedButton.classList.contains('disabled')) return;
+
+                    const isCorrect = clickedButton.dataset.correct === 'true';
+                    const parentQuestionBlock = clickedButton.closest('.question-block');
+                    const optionsInBlock = parentQuestionBlock.querySelectorAll('.option');
+
+                    optionsInBlock.forEach(btn => btn.classList.add('disabled'));
+
+                    if (isCorrect) {
+                        clickedButton.classList.add('correct');
+                    } else {
+                        clickedButton.classList.add('incorrect');
+                        const correctButton = parentQuestionBlock.querySelector('.option[data-correct="true"]');
+                        if (correctButton) correctButton.classList.add('correct');
+                    }
+                });
+            });
+
+            // --- Navigation Logic ---
+            function showView(viewIndex) {
+                views.forEach((view, index) => {
+                    view.classList.toggle('hidden-view', index !== viewIndex);
+                });
+                currentViewIndex = viewIndex;
+                window.scrollTo(0, 0);
+            }
+
+            comprehensionButton.addEventListener('click', () => showView(1));
+            furtherReadingButton.addEventListener('click', () => showView(2));
+            resetButton.addEventListener('click', () => {
+                showView(0);
+                resetStack();
+            });
+
+            comprehensionPrevBtn.addEventListener('click', () => showView(0));
+            comprehensionNextBtn.addEventListener('click', () => showView(2));
+
+            furtherReadingPrevBtn.addEventListener('click', () => showView(1));
+            furtherReadingNextBtn.addEventListener('click', () => showView(0));
+
+
+            // --- Initial Setup ---
+            setupCards();
+        });
+    </script>
+
+</body>
+</html>
